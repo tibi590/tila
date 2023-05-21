@@ -60,7 +60,6 @@ fn login() -> Result<(), Box<dyn Error>> {
         let password = input_to_var("Enter password: ");
 
         for result in x.records() {
-            println!("\nkaka\n");
             let record = result?;
 
             if name.trim() == record[0].to_string() && password.trim() == record[1].to_string() {
