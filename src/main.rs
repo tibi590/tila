@@ -4,80 +4,48 @@ use std::error::Error;
 use csv;
 
 fn main() -> () {
-    let mut prompt = String::new();
-
     loop {
-        print!("\nDo you want to Register(r), Login(l) or exit(e): ");
-        io::stdout()
-            .flush()
-            .expect("Error: Main");
-        io::stdin()
-            .read_line(&mut prompt)
-            .expect("Error: Main");
+        let prompt = input_to_var("\nDo you want to Register(r), Login(l) or exit(e): ");
 
-        if prompt.trim() == "r" {
+        if prompt == "r" {
             if let Err(e) = register() {
                 eprintln!("{:?}", e);
             }
-        } else if prompt.trim() == "l" {
+        } else if prompt == "l" {
             if let Err(e) = login() {
                 eprintln!("{:?}", e);
             }
-        } else if prompt.trim() == "e" {
+        } else if prompt == "e" {
             return ();
         } else {
             println!("Invalid Input\n");
         }
-        prompt.clear();
     }
 }
 
 fn register() -> Result<(), Box<dyn Error>> {
     println!("\nRegister");
-    let mut name = String::new();
-    let mut password = String::new();
-    let file = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open("./profiles.csv")
-        .unwrap();
-    let mut writer = csv::Writer::from_writer(file);
     let mut name_taken: bool = false;
 
     loop {
-        print!("Enter username: ");
-        io::stdout()
-            .flush()
-            .expect("Error: Register");
-        io::stdin()
-            .read_line(&mut name)
-            .expect("Error: Register");
+        let name = input_to_var("Enter username: ");
+        let password = input_to_var("Enter password: ");
 
-        print!("Enter password: ");
-        io::stdout()
-            .flush()
-            .expect("Error: Register");
-        io::stdin()
-            .read_line(&mut password)
-            .expect("Error: Register");
-
-        for result in csv::Reader::from_path("./profiles.csv")?.records() { 
-            if result?[0].to_string() == name.trim().to_string() {
-                name_taken = true;
-                break;
-            }
+        match username_taken(&name) {
+            Ok(true) => name_taken = true,
+            Ok(false) => name_taken = false,
+            _ => println!("Error: Checking username."),
         }
         
         if !name_taken {
-            writer.write_record(&[name.trim().to_string(), password.trim().to_string()])?;
-            writer.flush()?;
+            if let Err(_e) = write_to_csv(&name, &password, "user".to_string()) {
+                println!("Error: Writing to csv file.");
+            }
             println!("\nREGISTRATION SUCCESFULL");
             break;
         } else {
-            println!("Username already taken. Try again.\n");
+            println!("Username is already taken. Try again.");
         }
-        name.clear();
-        password.clear();
         name_taken = false;
     }
 
@@ -86,83 +54,165 @@ fn register() -> Result<(), Box<dyn Error>> {
 
 fn login() -> Result<(), Box<dyn Error>> {
     println!("\nLogin");
-    let mut name = String::new();
-    let mut password = String::new();
-    let mut reader = csv::Reader::from_path("./profiles.csv")?;
 
     for _i in 0..3 {
-        print!("Enter username: ");
-        io::stdout()
-            .flush()
-            .expect("Error: Login");
-        io::stdin()
-            .read_line(&mut name)
-            .expect("Error: Login");
+        let name = input_to_var("Enter username: ");
+        let password = input_to_var("Enter password: ");
 
-        print!("Enter password: ");
-        io::stdout()
-            .flush()
-            .expect("Error: Login");
-        io::stdin()
-            .read_line(&mut password)
-            .expect("Error: Login");
-
-        for result in reader.records() {
+        for result in csv::Reader::from_path("./profiles.csv")?.records() {
             let record = result?;
 
             if name.trim() == record[0].to_string() && password.trim() == record[1].to_string() {
-                println!("\nREGISTRATION SUCCESFULL");
-                menu(Profile { name: record[0].to_string(), password: record[1].to_string() });
+                println!("\nLOGIN SUCCESFULL");
+                if record[2].to_string() == "user" {
+                    menu(Profile { name: record[0].to_string(), password: record[1].to_string(), privilige: Privilige::User });
+                } else if record[2].to_string() == "admin" {
+                    menu(Profile { name: record[0].to_string(), password: record[1].to_string(), privilige: Privilige::Admin });
+                }
                 return Ok(());
             }
         }
         println!("Wrong username or password.\n");
-        name.clear();
-        password.clear();
     };
 
     Ok(())  
 }
 
+
 fn menu(profile: Profile) -> (){
     println!("\nMenu");
     loop {
-        let mut prompt = String::new();
-
-        print!("-> ");
-        io::stdout()
-            .flush()
-            .expect("Error: Menu");
-        io::stdin()
-            .read_line(&mut prompt)
-            .expect("Error: Menu");
+        let prompt = input_to_var("-> ");
 
         match prompt.trim() {
-            "sex" => println!("SEXY SEX"),
             "exit" => return (),
+            "help" | "?" => profile.help(),
             "profile-info" => profile.profile_info(),
-            "help" => help(),
-            _ => println!("No"),
+            "new-user" => profile.new_user(),
+            "list-profiles" => {
+                if let Err(e) = profile.list_profiles() {
+                    eprintln!("{:?}", e);
+                }
+            },
+            _ => println!("Invalid prompt"),
         }
     };
 }
 
-fn help() {
-    println!("Prompt list:
- -sex          |SEXY SEX
- -help         |prompt list
- -profile-info |shows username and password
- -exit         |close program");
+
+fn input_to_var(question: &str) -> String {
+    let mut var = String::new();
+
+    print!("{}", question);
+    io::stdout()
+        .flush()
+        .expect("Error: Input");
+    io::stdin()
+        .read_line(&mut var)
+        .expect("Error: Input");
+
+    var.trim().to_string()
+}
+
+fn username_taken(name: &String) -> Result<bool, Box<dyn Error>> {
+    for result in csv::Reader::from_path("./profiles.csv")?.records() { 
+        if result?[0].to_string() == name.trim().to_string() {
+            return Ok(true)
+        }
+    }
+    Ok(false)
+}
+
+fn write_to_csv(name: &String, password: &String, privilige: String) -> Result<(), Box<dyn Error>> {
+    let file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .open("./profiles.csv")
+        .unwrap();
+    let mut writer = csv::Writer::from_writer(file);
+
+    writer.write_record(&[name.trim().to_string(), password.trim().to_string(), privilige.trim().to_lowercase().to_string()])?;
+    Ok(())
+
 }
 
 #[derive(Debug)]
 struct Profile {
     name: String,
     password: String,
+    privilige: Privilige,
 }
 
 impl Profile {
-    fn profile_info(&self) {
-        println!("Username: {}\nPassword: {}", self.name, self.password);
+    fn help(&self) {
+        if self.privilige == Privilige::Admin {
+            println!("Prompt list:
+ -help         |prompt list
+ -exit         |close program
+ -profile-info |shows username and password
+ -new-user     |create a new user
+ -list-profiles|list profiles from profiles.csv file");
+        } else {
+            println!("Prompt list:
+ -help         |prompt list
+ -exit         |close program
+ -profile-info |shows username and password");
+        }   
     }
+
+    fn profile_info(&self) {
+        println!("Username: {}\nPassword: {}\nprivilige level: {:?}", self.name, self.password, self.privilige);
+    }
+
+    fn new_user(&self) {
+        if self.privilige == Privilige::Admin {
+            let name = input_to_var("Username: ");
+            let password = input_to_var("Password: ");
+            let privilige = input_to_var("Privilige level: (user, admin): ");
+            let mut name_taken: bool = false;
+            
+            match username_taken(&name) {
+                Ok(true) => name_taken = true,
+                Ok(false) => name_taken = false,
+                _ => println!("Error: Checking username."),
+            }
+            
+            if !name_taken {
+                if privilige.trim().to_lowercase() != "user" && privilige.trim().to_lowercase() != "admin" {
+                    println!("Invalid privilige level.");
+                } else {
+                    if let Err(_e) = write_to_csv(&name, &password, privilige.trim().to_lowercase().to_string()) {
+                        println!("Error: Writing to csv file");
+                    }
+                }
+            } else {
+                println!("Username is already taken.");
+            }
+        } else {
+            println!("Permission denied.");
+        }
+    }
+
+    fn list_profiles(&self) -> Result<(), Box<dyn Error>> {
+        if self.privilige == Privilige::Admin {
+            let mut reader = csv::Reader::from_path("./profiles.csv")?;
+
+            let headers = reader.headers()?;
+            println!("{}, {}, {}", headers[0].to_string().to_uppercase(), headers[1].to_string().to_uppercase(), headers[2].to_string().to_uppercase());
+
+            for result in reader.records() {
+                let record = result?;
+                println!("{}, {}, {}", record[0].to_string(), record[1].to_string(), record[2].to_string());
+            }
+        } else {
+            println!("Permission denied.");
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, PartialEq)]
+enum Privilige {
+    User,
+    Admin,
 }

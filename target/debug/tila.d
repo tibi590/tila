@@ -1,1 +1,1 @@
-/home/tibi/projekt/rust/tila/target/debug/tila: /home/tibi/projekt/rust/tila/src/main.rs
+/home/tibi/Projects/rust/tila/target/debug/tila: /home/tibi/Projects/rust/tila/src/main.rs
