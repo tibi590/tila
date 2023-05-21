@@ -41,7 +41,7 @@ fn register() -> Result<(), Box<dyn Error>> {
             if let Err(_e) = write_to_csv(&name, &password, "user".to_string()) {
                 println!("Error: Writing to csv file.");
             }
-            println!("\nREGISTRATION SUCCESFULL");
+            println!("\nREGISTRATION SUCCESSFUL");
             break;
         } else {
             println!("Username is already taken. Try again.");
@@ -54,20 +54,21 @@ fn register() -> Result<(), Box<dyn Error>> {
 
 fn login() -> Result<(), Box<dyn Error>> {
     println!("\nLogin");
-
-    for _i in 0..3 {
+    let mut x = csv::Reader::from_path("./profiles.csv")?;
+    for _ in 0..3 {
         let name = input_to_var("Enter username: ");
         let password = input_to_var("Enter password: ");
 
-        for result in csv::Reader::from_path("./profiles.csv")?.records() {
+        for result in x.records() {
+            println!("\nkaka\n");
             let record = result?;
 
             if name.trim() == record[0].to_string() && password.trim() == record[1].to_string() {
-                println!("\nLOGIN SUCCESFULL");
+                println!("\nLOGIN SUCCESSFUL");
                 if record[2].to_string() == "user" {
-                    menu(Profile { name: record[0].to_string(), password: record[1].to_string(), privilige: Privilige::User });
+                    menu(Profile { name: record[0].to_string(), password: record[1].to_string(), privilege: Privilege::User });
                 } else if record[2].to_string() == "admin" {
-                    menu(Profile { name: record[0].to_string(), password: record[1].to_string(), privilige: Privilige::Admin });
+                    menu(Profile { name: record[0].to_string(), password: record[1].to_string(), privilege: Privilege::Admin });
                 }
                 return Ok(());
             }
@@ -123,7 +124,7 @@ fn username_taken(name: &String) -> Result<bool, Box<dyn Error>> {
     Ok(false)
 }
 
-fn write_to_csv(name: &String, password: &String, privilige: String) -> Result<(), Box<dyn Error>> {
+fn write_to_csv(name: &String, password: &String, privilege: String) -> Result<(), Box<dyn Error>> {
     let file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -131,7 +132,7 @@ fn write_to_csv(name: &String, password: &String, privilige: String) -> Result<(
         .unwrap();
     let mut writer = csv::Writer::from_writer(file);
 
-    writer.write_record(&[name.trim().to_string(), password.trim().to_string(), privilige.trim().to_lowercase().to_string()])?;
+    writer.write_record(&[name.trim().to_string(), password.trim().to_string(), privilege.trim().to_lowercase().to_string()])?;
     Ok(())
 
 }
@@ -140,35 +141,35 @@ fn write_to_csv(name: &String, password: &String, privilige: String) -> Result<(
 struct Profile {
     name: String,
     password: String,
-    privilige: Privilige,
+    privilege: Privilege,
 }
 
 impl Profile {
     fn help(&self) {
-        if self.privilige == Privilige::Admin {
+        if self.privilege == Privilege::Admin {
             println!("Prompt list:
- -help         |prompt list
+ -help or ?    |prompt list
  -exit         |close program
  -profile-info |shows username and password
  -new-user     |create a new user
  -list-profiles|list profiles from profiles.csv file");
         } else {
             println!("Prompt list:
- -help         |prompt list
+ -help or ?    |prompt list
  -exit         |close program
  -profile-info |shows username and password");
         }   
     }
 
     fn profile_info(&self) {
-        println!("Username: {}\nPassword: {}\nprivilige level: {:?}", self.name, self.password, self.privilige);
+        println!("Username: {}\nPassword: {}\nprivilege level: {:?}", self.name, self.password, self.privilege);
     }
 
     fn new_user(&self) {
-        if self.privilige == Privilige::Admin {
+        if self.privilege == Privilege::Admin {
             let name = input_to_var("Username: ");
             let password = input_to_var("Password: ");
-            let privilige = input_to_var("Privilige level: (user, admin): ");
+            let privilege = input_to_var("Privilege level: (user, admin): ");
             let mut name_taken: bool = false;
             
             match username_taken(&name) {
@@ -178,10 +179,10 @@ impl Profile {
             }
             
             if !name_taken {
-                if privilige.trim().to_lowercase() != "user" && privilige.trim().to_lowercase() != "admin" {
-                    println!("Invalid privilige level.");
+                if privilege.trim().to_lowercase() != "user" && privilege.trim().to_lowercase() != "admin" {
+                    println!("Invalid privilege level.");
                 } else {
-                    if let Err(_e) = write_to_csv(&name, &password, privilige.trim().to_lowercase().to_string()) {
+                    if let Err(_e) = write_to_csv(&name, &password, privilege.trim().to_lowercase().to_string()) {
                         println!("Error: Writing to csv file");
                     }
                 }
@@ -194,7 +195,7 @@ impl Profile {
     }
 
     fn list_profiles(&self) -> Result<(), Box<dyn Error>> {
-        if self.privilige == Privilige::Admin {
+        if self.privilege == Privilege::Admin {
             let mut reader = csv::Reader::from_path("./profiles.csv")?;
 
             let headers = reader.headers()?;
@@ -212,7 +213,7 @@ impl Profile {
 }
 
 #[derive(Debug, PartialEq)]
-enum Privilige {
+enum Privilege {
     User,
     Admin,
 }
