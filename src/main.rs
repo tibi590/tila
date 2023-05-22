@@ -1,9 +1,17 @@
-use std::fs::OpenOptions;
+use std::fs::{OpenOptions, File};
 use std::io::{self, Write};
 use std::error::Error;
+use std::path::Path;
 use csv;
 
 fn main() -> () {
+    let csv_exists: bool = Path::new("profiles.csv").exists();
+    if !csv_exists {
+        if let Err(e) = create_csv_file() {
+            eprintln!("Error: creating \"profiles.csv\": {:?}", e);
+        }
+    }
+
     loop {
         let prompt = input_to_var("\nDo you want to Register(r), Login(l) or exit(e): ");
 
@@ -37,14 +45,14 @@ fn register() -> Result<(), Box<dyn Error>> {
             _ => println!("Error: Checking username."),
         }
         
-        if !name_taken {
-            if let Err(_e) = write_to_csv(&name, &password, "user".to_string()) {
-                println!("Error: Writing to csv file.");
+        if !name_taken && !name.trim().is_empty() && !password.trim().is_empty() {
+            if let Err(e) = write_to_csv(name, password, "user".to_string()) {
+                println!("Error: Writing to \"profiles.csv\": {:?}", e);
             }
             println!("\nREGISTRATION SUCCESSFUL");
             break;
         } else {
-            println!("Username is already taken. Try again.");
+            println!("Invalid username or password or username is already taken. Try again.\n");
         }
         name_taken = false;
     }
@@ -54,12 +62,11 @@ fn register() -> Result<(), Box<dyn Error>> {
 
 fn login() -> Result<(), Box<dyn Error>> {
     println!("\nLogin");
-    let mut x = csv::Reader::from_path("./profiles.csv")?;
     for _ in 0..3 {
         let name = input_to_var("Enter username: ");
         let password = input_to_var("Enter password: ");
 
-        for result in x.records() {
+        for result in csv::Reader::from_path("./profiles.csv")?.records() {
             let record = result?;
 
             if name.trim() == record[0].to_string() && password.trim() == record[1].to_string() {
@@ -123,7 +130,7 @@ fn username_taken(name: &String) -> Result<bool, Box<dyn Error>> {
     Ok(false)
 }
 
-fn write_to_csv(name: &String, password: &String, privilege: String) -> Result<(), Box<dyn Error>> {
+fn write_to_csv(name: String, password: String, privilege: String) -> Result<(), Box<dyn Error>> {
     let file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -131,9 +138,19 @@ fn write_to_csv(name: &String, password: &String, privilege: String) -> Result<(
         .unwrap();
     let mut writer = csv::Writer::from_writer(file);
 
-    writer.write_record(&[name.trim().to_string(), password.trim().to_string(), privilege.trim().to_lowercase().to_string()])?;
+    writer.write_record([name.trim().to_string(), password.trim().to_string(), privilege.trim().to_lowercase().to_string()])?;
     Ok(())
 
+}
+
+fn create_csv_file() -> Result<(), Box<dyn Error>>{
+    File::create("./profiles.csv").expect("Error: creating \"profiles.csv\" file");
+    println!("File created");
+
+    write_to_csv("Username".to_string(), "Password".to_string(), "Privilege".to_string())?;
+    write_to_csv("admin".to_string(), "admin".to_string(), "admin".to_string())?;
+
+    Ok(())
 }
 
 #[derive(Debug)]
@@ -150,7 +167,7 @@ impl Profile {
  -help or ?    |prompt list
  -exit         |close program
  -profile-info |shows username and password
- -new-user     |create a new user
+ -new-user     |cprivilegereate a new user
  -list-profiles|list profiles from profiles.csv file");
         } else {
             println!("Prompt list:
@@ -177,16 +194,16 @@ impl Profile {
                 _ => println!("Error: Checking username."),
             }
             
-            if !name_taken {
+            if !name_taken && !name.trim().is_empty() && !password.trim().is_empty() {
                 if privilege.trim().to_lowercase() != "user" && privilege.trim().to_lowercase() != "admin" {
                     println!("Invalid privilege level.");
                 } else {
-                    if let Err(_e) = write_to_csv(&name, &password, privilege.trim().to_lowercase().to_string()) {
-                        println!("Error: Writing to csv file");
+                    if let Err(e) = write_to_csv(name, password, privilege.trim().to_lowercase().to_string()) {
+                        println!("Error: Writing to \"profile.csv\": {:?}", e);
                     }
                 }
             } else {
-                println!("Username is already taken.");
+                println!("Invalid username or password or username is already taken. Try again.");
             }
         } else {
             println!("Permission denied.");
@@ -198,11 +215,11 @@ impl Profile {
             let mut reader = csv::Reader::from_path("./profiles.csv")?;
 
             let headers = reader.headers()?;
-            println!("{}, {}, {}", headers[0].to_string().to_uppercase(), headers[1].to_string().to_uppercase(), headers[2].to_string().to_uppercase());
+            println!("{} | {} | {}", headers[0].to_string().to_uppercase(), headers[1].to_string().to_uppercase(), headers[2].to_string().to_uppercase());
 
             for result in reader.records() {
                 let record = result?;
-                println!("{}, {}, {}", record[0].to_string(), record[1].to_string(), record[2].to_string());
+                println!("{} | {} | {}", record[0].to_string(), record[1].to_string(), record[2].to_string());
             }
         } else {
             println!("Permission denied.");
