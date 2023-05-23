@@ -145,7 +145,6 @@ fn write_to_csv(name: String, password: String, privilege: String) -> Result<(),
 
 fn create_csv_file() -> Result<(), Box<dyn Error>>{
     File::create("./profiles.csv").expect("Error: creating \"profiles.csv\" file");
-    println!("File created");
 
     write_to_csv("Username".to_string(), "Password".to_string(), "Privilege".to_string())?;
     write_to_csv("admin".to_string(), "admin".to_string(), "admin".to_string())?;
@@ -167,7 +166,7 @@ impl Profile {
  -help or ?    |prompt list
  -exit         |close program
  -profile-info |shows username and password
- -new-user     |cprivilegereate a new user
+ -new-user     |generate a new user
  -list-profiles|list profiles from profiles.csv file");
         } else {
             println!("Prompt list:
