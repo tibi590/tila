@@ -3,7 +3,6 @@ use std::io::{self, Write};
 use std::error::Error;
 use std::path::Path;
 use csv;
-//komment!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 fn main() -> () {
     let csv_exists: bool = Path::new("profiles.csv").exists();
@@ -119,7 +118,6 @@ fn input_to_var(question: &str) -> String {
         .read_line(&mut var)
         .expect("Error: Input");
 
-    var.trim().to_string()
 }
 
 fn username_taken(name: &String) -> Result<bool, Box<dyn Error>> {
@@ -221,6 +219,7 @@ impl Profile {
                 println!("{} | {} | {}", record[0].to_string(), record[1].to_string(), record[2].to_string());
             }
         } else {
+            println!("Permission denied.");
             println!("Permission denied.");
         }
         Ok(())
