@@ -3,6 +3,7 @@ use std::io::{self, Write};
 use std::error::Error;
 use std::path::Path;
 use csv;
+//komment!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 fn main() -> () {
     let csv_exists: bool = Path::new("profiles.csv").exists();
@@ -140,10 +141,9 @@ fn write_to_csv(name: String, password: String, privilege: String) -> Result<(),
 
     writer.write_record([name.trim().to_string(), password.trim().to_string(), privilege.trim().to_lowercase().to_string()])?;
     Ok(())
-
 }
 
-fn create_csv_file() -> Result<(), Box<dyn Error>>{
+fn create_csv_file() -> Result<(), Box<dyn Error>> {
     File::create("./profiles.csv").expect("Error: creating \"profiles.csv\" file");
 
     write_to_csv("Username".to_string(), "Password".to_string(), "Privilege".to_string())?;
