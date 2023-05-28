@@ -1,8 +1,10 @@
 use diesel::sqlite::SqliteConnection;
-use diesel::{prelude::*, insert_into};
+use diesel::{prelude::*, insert_into, delete};
 use dotenvy::dotenv;
 use std::env;
+use crate::functions::input_to_var;
 use crate::models::*;
+use crate::schema::users::dsl::*;
 
 pub fn get_connection() -> SqliteConnection {
     dotenv().ok();
@@ -24,9 +26,21 @@ pub fn get_users(connection: &mut SqliteConnection) -> Vec<User>{
 }
 
 pub fn write_user(connection: &mut SqliteConnection, user: &User) -> QueryResult<usize> {
-    use crate::schema::users::dsl::*;
 
     insert_into(users)
         .values((username.eq(&user.username), password.eq(&user.password)))
         .execute(connection)
+}
+
+pub fn delete_user(connection: &mut SqliteConnection) {
+    println!("\nDELETION");
+
+    let temp_username = input_to_var("\nUsername: ");
+    let pattern = format!("%{}%", temp_username);
+
+    if !temp_username.is_empty() {
+        delete(users.filter(username.like(pattern)))
+            .execute(connection)
+            .expect("Error deleting user");
+    }
 }

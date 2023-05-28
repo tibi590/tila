@@ -4,17 +4,14 @@ use diesel::SqliteConnection;
 use std::io::{self, Write};
 
 pub fn login(connection: &mut SqliteConnection) -> bool {
-    println!("LOGIN\n");
+    println!("\nLOGIN");
 
-    let username = input_to_var("Username: ");
+    let username = input_to_var("\nUsername: ");
     let password = input_to_var("Password: ");
 
     let users = get_users(connection);
 
     for user in users {
-        println!("{:?}", user);
-        println!("{}, {}", username.trim(), password.trim());
-        println!("-----------------------------");
         if user.username == username && user.password == password {
             return true;
         }
@@ -23,18 +20,22 @@ pub fn login(connection: &mut SqliteConnection) -> bool {
 }
 
 pub fn register(connection: &mut SqliteConnection) -> User {
-    println!("REGISTRATION\n");
+    println!("\nREGISTRATION");
     
     loop {
         let temp_user = User {
-            username: input_to_var("Username: "),
+            username: input_to_var("\nUsername: "),
             password: input_to_var("Password: "),
         };
 
-        if let Err(_) = write_user(connection, &temp_user) {
-            println!("Username already taken. Try again.");
+        if !(temp_user.username.is_empty() && temp_user.password.is_empty()) {
+            if let Err(_) = write_user(connection, &temp_user) {
+                println!("Username already taken. Try again.");
+            } else {
+                return temp_user;
+            }
         } else {
-            return temp_user;
+            println!("Invalid username. Try again.");
         }
     }
 }
@@ -49,5 +50,5 @@ pub fn input_to_var(message: &str) -> String {
         .read_line(&mut var)
         .expect("Error reading input.");
 
-    var.trim_end().to_string()
+    var.trim().to_string()
 }

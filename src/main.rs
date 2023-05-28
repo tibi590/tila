@@ -11,7 +11,13 @@ fn main() {
 
     println!("{}", login(connection));
 
-    println!("{:?}", register(connection));
+    register(connection);
+
+    for user in get_users(connection) {
+        println!("{:?}", user);
+    }
+
+    delete_user(connection);
 
     for user in get_users(connection) {
         println!("{:?}", user);
