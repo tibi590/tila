@@ -1,5 +1,5 @@
 use diesel::sqlite::SqliteConnection;
-use diesel::prelude::*;
+use diesel::{prelude::*, insert_into};
 use dotenvy::dotenv;
 use std::env;
 use crate::models::*;
@@ -12,7 +12,7 @@ pub fn get_connection() -> SqliteConnection {
         .unwrap_or_else(|_| panic!("Error connection to {}", database_url))
 }
 
-pub fn show_users(connection: &mut SqliteConnection) -> Vec<User>{
+pub fn get_users(connection: &mut SqliteConnection) -> Vec<User>{
     use crate::schema::users::dsl::*;
 
     let results = users
@@ -21,4 +21,12 @@ pub fn show_users(connection: &mut SqliteConnection) -> Vec<User>{
         .expect("Error loading users.");
 
     results
+}
+
+pub fn write_user(connection: &mut SqliteConnection, user: &User) -> QueryResult<usize> {
+    use crate::schema::users::dsl::*;
+
+    insert_into(users)
+        .values((username.eq(&user.username), password.eq(&user.password)))
+        .execute(connection)
 }

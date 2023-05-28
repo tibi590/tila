@@ -1,0 +1,1 @@
+InsertStatement<table, diesel::query_builder::insert_statement::ValuesClause<(ColumnInsertValue<columns::username, &columns::username>, ColumnInsertValue<columns::password, &columns::password>), table>>

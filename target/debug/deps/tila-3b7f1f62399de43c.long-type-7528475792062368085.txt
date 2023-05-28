@@ -1,0 +1,1 @@
+(ColumnInsertValue<columns::username, expression::bound::Bound<diesel::sql_types::Text, &str>>, ColumnInsertValue<columns::password, columns::password>)

@@ -1,13 +1,19 @@
 mod db;
 mod schema;
 mod models;
+mod functions;
+
+use db::*;
+use crate::functions::{login, register};
 
 fn main() {
-    let connection = &mut db::get_connection();
+    let connection = &mut get_connection();
 
-    let users = db::show_users(connection);
+    println!("{}", login(connection));
 
-    for user in users {
+    println!("{:?}", register(connection));
+
+    for user in get_users(connection) {
         println!("{:?}", user);
     }
 }
