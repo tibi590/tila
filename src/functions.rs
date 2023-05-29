@@ -2,10 +2,11 @@ use crate::db::*;
 use crate::models::*;
 use diesel::SqliteConnection;
 use std::io::{self, Write};
+use rpassword::prompt_password;
 
 pub fn login(connection: &mut SqliteConnection) -> bool {
     let username = input_to_var("\nUsername: ");
-    let password = input_to_var("Password: ");
+    let password = prompt_password("Password: ").unwrap();
 
     let users = get_users(connection);
 
@@ -20,7 +21,7 @@ pub fn login(connection: &mut SqliteConnection) -> bool {
 pub fn register(connection: &mut SqliteConnection) -> bool {
     let user = User {
         username: input_to_var("\nUsername: "),
-        password: input_to_var("Password: "),
+        password: prompt_password("Password: ").unwrap(),
     };
 
     if !user.username.is_empty() && !user.password.is_empty() {
