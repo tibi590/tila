@@ -23,7 +23,7 @@ pub fn register(connection: &mut SqliteConnection) -> bool {
         password: input_to_var("Password: "),
     };
 
-    if !(user.username.is_empty() && user.password.is_empty()) {
+    if !user.username.is_empty() && !user.password.is_empty() {
         if let Err(_) = write_user(connection, &user) {
             println!("Username already taken. Try again.");
         } else {
