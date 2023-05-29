@@ -4,8 +4,6 @@ use diesel::SqliteConnection;
 use std::io::{self, Write};
 
 pub fn login(connection: &mut SqliteConnection) -> bool {
-    println!("\nLOGIN");
-
     let username = input_to_var("\nUsername: ");
     let password = input_to_var("Password: ");
 
@@ -19,25 +17,23 @@ pub fn login(connection: &mut SqliteConnection) -> bool {
     return false;
 }
 
-pub fn register(connection: &mut SqliteConnection) -> User {
-    println!("\nREGISTRATION");
-    
-    loop {
-        let temp_user = User {
-            username: input_to_var("\nUsername: "),
-            password: input_to_var("Password: "),
-        };
+pub fn register(connection: &mut SqliteConnection) -> bool {
+    let user = User {
+        username: input_to_var("\nUsername: "),
+        password: input_to_var("Password: "),
+    };
 
-        if !(temp_user.username.is_empty() && temp_user.password.is_empty()) {
-            if let Err(_) = write_user(connection, &temp_user) {
-                println!("Username already taken. Try again.");
-            } else {
-                return temp_user;
-            }
+    if !(user.username.is_empty() && user.password.is_empty()) {
+        if let Err(_) = write_user(connection, &user) {
+            println!("Username already taken. Try again.");
         } else {
-            println!("Invalid username. Try again.");
+            return true;
         }
+    } else {
+        println!("Invalid username. Try again.");
     }
+
+    return false;
 }
 
 pub fn input_to_var(message: &str) -> String {

@@ -26,7 +26,6 @@ pub fn get_users(connection: &mut SqliteConnection) -> Vec<User>{
 }
 
 pub fn write_user(connection: &mut SqliteConnection, user: &User) -> QueryResult<usize> {
-
     insert_into(users)
         .values((username.eq(&user.username), password.eq(&user.password)))
         .execute(connection)

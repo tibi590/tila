@@ -2,24 +2,23 @@ mod db;
 mod schema;
 mod models;
 mod functions;
+mod pages;
 
-use db::*;
-use crate::functions::{login, register};
+use db::get_connection;
+use pages::*;
+use functions::input_to_var;
 
 fn main() {
     let connection = &mut get_connection();
 
-    println!("{}", login(connection));
+    loop {
+        let prompt = input_to_var("\nRegister | Login | Exit (r | l | e): ");
 
-    register(connection);
-
-    for user in get_users(connection) {
-        println!("{:?}", user);
-    }
-
-    delete_user(connection);
-
-    for user in get_users(connection) {
-        println!("{:?}", user);
+        match prompt.to_lowercase().as_str() {
+            "r" => register_page(connection),
+            "l" => login_page(connection),
+            "e" => break,
+            _ => println!("Invalid input"),
+        }
     }
 }
