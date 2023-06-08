@@ -4,14 +4,11 @@ use diesel::SqliteConnection;
 use std::io::{self, Write};
 use rpassword::prompt_password;
 
-pub fn login(connection: &mut SqliteConnection) -> bool {
-    let username = input_to_var("\nUsername: ");
-    let password = prompt_password("Password: ").unwrap();
-
+pub fn login(connection: &mut SqliteConnection, username: &String, password: &String) -> bool {
     let users = get_users(connection);
 
     for user in users {
-        if user.username == username && user.password == password {
+        if &user.username == username && &user.password == password {
             return true;
         }
     }
