@@ -13,20 +13,13 @@ fn main() -> () {
     }
 
     loop {
-        let prompt = input_to_var("\nDo you want to Register(r), Login(l) or exit(e): ");
-
-        if prompt == "r" {
-            if let Err(e) = register() {
-                eprintln!("{:?}", e);
-            }
-        } else if prompt == "l" {
-            if let Err(e) = login() {
-                eprintln!("{:?}", e);
-            }
-        } else if prompt == "e" {
-            return ();
-        } else {
-            println!("Invalid Input\n");
+        let promt = input_to_var("\nDo you want to Register(r), Login(l) or exit(e): ");
+        
+        match promt.trim() {
+            "r" => if let Err(e) = register() {eprintln!("{:?}", e)},
+            "l" => if let Err(e) = login() {eprintln!("{:?}", e)},
+            "e" => return (),
+            _ => println!("Invalid input.")
         }
     }
 }
@@ -89,9 +82,9 @@ fn login() -> Result<(), Box<dyn Error>> {
 fn menu(profile: Profile) -> (){
     println!("\nMenu");
     loop {
-        let prompt = input_to_var("-> ");
+        let promt = input_to_var("-> ");
 
-        match prompt.trim() {
+        match promt.trim() {
             "exit" => return (),
             "help" | "?" => profile.help(),
             "profile-info" => profile.profile_info(),
@@ -101,7 +94,7 @@ fn menu(profile: Profile) -> (){
                     eprintln!("{:?}", e);
                 }
             },
-            _ => println!("Invalid prompt"),
+            _ => println!("Invalid promt"),
         }
     };
 }
@@ -163,14 +156,14 @@ impl Profile {
     fn help(&self) {
         if self.privilege == Privilege::Admin {
             println!("Prompt list:
- -help or ?    |prompt list
+ -help or ?    |promt list
  -exit         |close program
  -profile-info |shows username and password
  -new-user     |generate a new user
  -list-profiles|list profiles from profiles.csv file");
         } else {
             println!("Prompt list:
- -help or ?    |prompt list
+ -help or ?    |promt list
  -exit         |close program
  -profile-info |shows username and password");
         }   
