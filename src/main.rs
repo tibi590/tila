@@ -227,8 +227,10 @@ impl Profile {
     }
 }
 
+
+
 #[derive(Debug, PartialEq)]
 enum Privilege {
     User,
-    Admin,
+    Admin, 
 }
